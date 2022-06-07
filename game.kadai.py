@@ -287,6 +287,23 @@ class Screen:
         )
         self.canvas.grid(column=0, row=0)  #キャンバスをメインウィンドウ上に配置
 
+        self.frame = tk.Frame(
+            self.master
+        )
+        self.frame.grid(column=0, row=2)
+
+        self.start_button = tk.Button(
+            self.frame,
+            text="ゲームスタート"
+        )   #スタートボタンの配置 
+        self.start_button.grid(column=0, row=0)  #C0B21022_瓜生竜馬
+
+        self.stop_button = tk.Button(
+            self.frame,
+            text="ストップ"
+        )   #ストップボタンの配置 
+        self.stop_button.grid(column=2, row=0)   #C0B21022_瓜生竜馬
+
     def drawBackground(self):
         image = Image.open("fig/hell.jpg")                #背景画像の読み込み
 
@@ -311,6 +328,7 @@ class Game:
 
     def __init__(self, master):
         self.master = master
+        self.is_playing = False                 #C0B21022_瓜生竜馬#プレーのFalse
         self.screen = Screen(self.master)
 
         self.characters = []
@@ -329,11 +347,15 @@ class Game:
         for _ in range(2):                   #統計学の教科書の数
             enemy = toukeigakuEnemy()
             self.characters.append(enemy)    #統計学の教科書の描画
-        self.master.bind("<KeyPress-Left>", self.press)  #左キーを入力したらpressメソッドを実行
-        self.master.bind("<KeyPress-Right>", self.press) #右キーを入力したらpressメソッドを実行
-        self.master.bind("<KeyPress-Up>", self.press)    #上キーを入力したらpressメソッドを実行
 
-        self.update()
+        self.screen.start_button.bind("<ButtonPress>", self.start)   #C0B21022_瓜生竜馬#スタートボタン
+        self.screen.stop_button.bind("<ButtonPress>", self.stop)     #C0B21022_瓜生竜馬#ストップボタン
+        
+        #self.master.bind("<KeyPress-Left>", self.press)  #左キーを入力したらpressメソッドを実行
+        #self.master.bind("<KeyPress-Right>", self.press) #右キーを入力したらpressメソッドを実行
+        #self.master.bind("<KeyPress-Up>", self.press)    #上キーを入力したらpressメソッドを実行
+
+        #self.update()
 
     def press(self, event):
         if event.keysym == "Left":         #左に入力されたら
@@ -347,6 +369,8 @@ class Game:
             self.collisionDetect(self.player)
 
     def update(self):
+        if not self.is_playing:                          #C0B21022_瓜生竜馬
+            return
         if self.player.state == Character.STATE_NORMAL:  #プレイヤーの状態が通常なら
             self.master.after(UPDATE_TIME, self.update)  #UPDATE_TIMEを元にゲームを更新し続ける
         else:                                            #そうでないなら
@@ -423,6 +447,27 @@ class Game:
                 opponent.trample()              #敵キャラを自機キャラを踏んで跳ね返っている状態にする
             else:                               #そうでないなら
                 opponent.defeated()             #敵キャラを倒された状態にする
+
+    def start(self, event):                                #C0B21022_瓜生竜馬#スタートボタン
+        if self.is_playing:
+            return
+
+        self.is_playing = True                             #プレーをTrue
+        self.master.bind("<KeyPress-Left>", self.press)    #(キーボードの左キー入力,pressメソッド)
+        self.master.bind("<KeyPress-Right>", self.press)   #(キーボードの右キー入力,pressメソッド)
+        self.master.bind("<KeyPress-Up>", self.press)      #(キーボードの上キー入力,pressメソッド)
+
+        self.update()
+
+    def stop(self, event):                                 #C0B21022_瓜生竜馬#ストップボタン
+        if not self.is_playing:
+            return
+
+        self.is_playing = False                            #プレーをTrue
+
+        self.master.unbind("<KeyPress-Left>")              #(キーボードの左キー入力,pressメソッド)
+        self.master.unbind("<KeyPress-Right>")             #(キーボードの右キー入力,pressメソッド)
+        self.master.unbind("<KeyPress-Up>")                #(キーボードの上キー入力,pressメソッド) 
 
 def main():
     if pg.mixer:
