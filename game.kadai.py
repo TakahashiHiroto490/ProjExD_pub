@@ -1,16 +1,32 @@
 import tkinter as tk
+import pygame as pg
+import pygame
 from PIL import Image, ImageTk, ImageOps
 import random
+import os
+
+main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 VIEW_WIDTH = 800  #スクリーンの横サイズ
 VIEW_HEIGHT = 500 #スクリーンの縦サイズ
-GAME_WIDTH = 1700 #ゲーム画面のサイズ
+GAME_WIDTH = 2000 #ゲーム画面のサイズ
 
 UPDATE_TIME = 70  #ゲームのコマ数
 
 BG_IMAGE_PATH = "fig/hell.jpg"     #背景用の写真
 PLAYER_IMAGE_PATH = "fig/dash.PNG" #自機キャラの写真
 
+def load_sound(file):      #音楽ファイルの読み込み　　大野歩夢
+    """because pygame can be be compiled without mixer."""
+    if not pg.mixer:
+        return None
+    file = os.path.join(main_dir, "data1", file)
+    try:
+        sound = pg.mixer.Sound(file)
+        return sound
+    except pg.error:
+        print("Warning, unable to load, %s" % file)
+    return None
 
 class Character:
     DIRECTION_LEFT = 0  #左を入力している状態
@@ -23,6 +39,7 @@ class Character:
     STATE_NORMAL = 0    #通常の状態
     STATE_CLEAR = 1     #ゲームクリア時の状態
     STATE_DEFEATED = 2  #ゲームオーバー時の状態
+
 
     def prepareImage(self, path, size, is_right=True):  #自機キャラ画像の拡大縮小
         image = Image.open(path)                        #画像の読み込み
@@ -319,11 +336,11 @@ class Game:
         self.characters.append(self.player)  #自機キャラを追加
         goal = Goal()
         self.characters.append(goal)         #ゴールの描画
-        for _ in range(2):                   #pythonの教科書の数
+        for _ in range(3):                   #pythonの教科書の数
             enemy = pythonEnemy()
             self.characters.append(enemy)    #pythonの教科書の描画
 
-        for _ in range(2):                   #解析学の教科書の数
+        for _ in range(3):                   #解析学の教科書の数
             enemy = kaisekiEnemy()
             self.characters.append(enemy)    #解析学の教科書の描画
 
@@ -375,8 +392,10 @@ class Game:
         self.screen.update(image_infos, self.player.x + self.player.width / 2)  #自機キャラを画面の中央になるように指定
         if self.player.state == Character.STATE_CLEAR:      #ゲームクリアの状態になったら
             self.screen.message(Screen.TYPE_GAMECLEAR, self.player.x + self.player.width // 2) #ゲームクリアの際のメッセージを画面の中央に描画するように設定
+            pygame.mixer.music.stop()       #音楽のストップ　大野歩夢
         elif self.player.state == Character.STATE_DEFEATED: #ゲームオーバーの状態になったら
             self.screen.message(Screen.TYPE_GAMEOVER, self.player.x + self.player.width // 2)  #ゲームオーバーの際のメッセージを画面の中央に描画するように設定
+            pygame.mixer.music.stop()       #音楽のストップ　大野歩夢
 
     def collide(self, character, opponent):
         if isinstance(character, Player) and isinstance(opponent, Goal):   #自機キャラがゴールにたどり着いたら
@@ -451,9 +470,15 @@ class Game:
         self.master.unbind("<KeyPress-Up>")                #(キーボードの上キー入力,pressメソッド) 
 
 def main():
+    if pg.mixer:
+        music = os.path.join(main_dir, "data1", "zigoku.mp3")#音楽の読み込み　大野歩夢
+        pg.mixer.music.load(music)#音楽ロード
+        pg.mixer.music.play(-1)#ループ再生
     app = tk.Tk()
     game = Game(app)
     app.mainloop()
 
 if __name__ == "__main__":
+    pg.init() 
     main()
+    pg.quit()
